@@ -24,24 +24,6 @@ from spyglass.spikesorting.analysis.v1.group import UnitSelectionParams
 from spyglass.spikesorting.analysis.v1.unit_annotation import UnitAnnotation
 
 
-def main():
-    nwbfile_path = Path("/Volumes/T7/CatalystNeuro/Spyglass/raw/mock_sorting.nwb")
-    nwb_copy_file_name = get_nwb_copy_filename(nwbfile_path.name)
-
-    if sgc.Session & {"nwb_file_name": nwb_copy_file_name}:
-        (sgc.Session & {"nwb_file_name": nwb_copy_file_name}).delete()
-    if sgc.Nwbfile & {"nwb_file_name": nwb_copy_file_name}:
-        (sgc.Nwbfile & {"nwb_file_name": nwb_copy_file_name}).delete()
-
-    sgi.insert_sessions(str(nwbfile_path), rollback_on_fail=True, raise_err=True)
-    annotation_to_type = {
-        "custom_label": "label",
-        "custom_quantification": "quantification",
-    }
-    insert_sorting(nwbfile_path=nwbfile_path, annotation_to_type=annotation_to_type)
-    test_sorting(nwbfile_path=nwbfile_path)
-
-
 def insert_sorting(nwbfile_path: Path, annotation_to_type: dict):
     """
     Insert spike sorting data from an NWB file into a spyglass database.
@@ -102,6 +84,24 @@ def test_sorting(nwbfile_path: Path):
     spikes_nwb = [unit.spike_times for _, unit in units_table.iterrows()]
     for nwb_unit, spyglass_unit in zip(spikes_nwb, spikes_spyglass):
         np.testing.assert_array_equal(nwb_unit, spyglass_unit)
+
+
+def main():
+    nwbfile_path = Path("/Volumes/T7/CatalystNeuro/Spyglass/raw/mock_sorting.nwb")
+    nwb_copy_file_name = get_nwb_copy_filename(nwbfile_path.name)
+
+    if sgc.Session & {"nwb_file_name": nwb_copy_file_name}:
+        (sgc.Session & {"nwb_file_name": nwb_copy_file_name}).delete()
+    if sgc.Nwbfile & {"nwb_file_name": nwb_copy_file_name}:
+        (sgc.Nwbfile & {"nwb_file_name": nwb_copy_file_name}).delete()
+
+    sgi.insert_sessions(str(nwbfile_path), rollback_on_fail=True, raise_err=True)
+    annotation_to_type = {
+        "custom_label": "label",
+        "custom_quantification": "quantification",
+    }
+    insert_sorting(nwbfile_path=nwbfile_path, annotation_to_type=annotation_to_type)
+    test_sorting(nwbfile_path=nwbfile_path)
 
 
 if __name__ == "__main__":
